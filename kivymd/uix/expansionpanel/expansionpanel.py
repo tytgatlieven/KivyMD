@@ -503,10 +503,8 @@ class MDExpansionPanel(DeclarativeBehavior, BoxLayout):
             self._panel_is_process_opening = False
             self.dispatch("on_open")
 
-        if not self._panel_is_process_opening:
-            self._allow_add_content = True
-            self._panel_is_process_opening = True
-            self.add_widget(self._content)
+        def start_opening_animation(*args):
+            self._original_content_height = self._content.minimum_height
 
             anim_height = Animation(
                 height=self._original_content_height,
@@ -515,6 +513,13 @@ class MDExpansionPanel(DeclarativeBehavior, BoxLayout):
             )
             anim_height.bind(on_complete=set_content_opacity)
             anim_height.start(self._content)
+
+        if not self._panel_is_process_opening:
+            self._allow_add_content = True
+            self._panel_is_process_opening = True
+            self.add_widget(self._content)
+            # Wait for one frame to allow children to layout and minimum_height to be accurate
+            Clock.schedule_once(start_opening_animation)
 
     def add_widget(self, widget, index=0, canvas=None):
         if isinstance(widget, MDExpansionPanelHeader):
